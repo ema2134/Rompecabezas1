@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rompecabezas con Imagen</title>
+    <style>
+        body {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #reference-image {
+            margin-bottom: 20px;
+            width: 300px;
+        }
+        #puzzle-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        #puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 2px;
+        }
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            background-size: 300px 300px;
+            border: 1px solid #000;
+        }
+        .empty-piece {
+            background: #ccc;
+        }
+        #timer {
+            margin: 20px 0;
+        }
+        button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-wrapper">
+        <img id="reference-image" src="https://sistemasoperativos.info/wp-content/uploads/2023/05/centos-logo.jpg" alt="Referencia del Rompecabezas">
+        <div id="puzzle-wrapper">
+            <h1 style="margin: 0;">Rompecabezas</h1>
+            <button id="start-button">Iniciar</button>
+            <div id="timer">Tiempo: 0 segundos</div>
+            <div id="puzzle-container"></div>
+        </div>
+    </div>
+    <script>
+        let timer = 0;
+        let interval;
+        let pieces = [];
+
+        document.getElementById('start-button').addEventListener('click', startPuzzle);
+
+        function startPuzzle() {
+            const puzzleContainer = document.getElementById('puzzle-container');
+            puzzleContainer.innerHTML = '';
+            clearInterval(interval);
+            timer = 0;
+            document.getElementById('timer').textContent = "Tiempo: " + timer + " segundos";
+
+            const imgSrc = 'https://sistemasoperativos.info/wp-content/uploads/2023/05/centos-logo.jpg';
+            pieces = [];
+            for (let i = 0; i < 8; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                piece.style.backgroundImage = `url(${imgSrc})`;
+                piece.style.backgroundPosition = `${-(i % 3) * 100}px ${-Math.floor(i / 3) * 100}px`;
+                piece.dataset.index = i;
+                pieces.push(piece);
+            }
+            const emptyPiece = document.createElement('div');
+            emptyPiece.className = 'puzzle-piece empty-piece';
+            emptyPiece.dataset.index = 8;
+            pieces.push(emptyPiece);
+            shufflePieces();
+            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+            addClickEvents();
+            startTimer();
+        }
+
+        function shufflePieces() {
+            pieces.sort(() => Math.random() - 0.5);
+        }
+
+        function addClickEvents() {
+            pieces.forEach(piece => {
+                piece.addEventListener('click', () => {
+                    movePiece(piece);
+                });
+            });
+        }
+
+        function movePiece(piece) {
+            const emptyPiece = document.querySelector('.empty-piece');
+            const pieceIndex = Array.from(pieces).indexOf(piece);
+            const emptyIndex = Array.from(pieces).indexOf(emptyPiece);
+
+            const distance = Math.abs(pieceIndex - emptyIndex);
+            if (distance === 1 || distance === 3) {
+                [pieces[pieceIndex], pieces[emptyIndex]] = [pieces[emptyIndex], pieces[pieceIndex]];
+                updatePuzzleContainer();
+            }
+
+            checkVictory();
+        }
+
+        function updatePuzzleContainer() {
+            const puzzleContainer = document.getElementById('puzzle-container');
+            puzzleContainer.innerHTML = '';
+            pieces.forEach(piece => puzzleContainer.appendChild(piece));
+        }
+
+        function startTimer() {
+            interval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = "Tiempo: " + timer + " segundos";
+            }, 1000);
+        }
+
+        function checkVictory() {
+            if (pieces.every((piece, index) => piece.dataset.index == index)) {
+                clearInterval(interval);
+                alert("¡Felicidades! Completaste el rompecabezas en " + timer + " segundos.");
+            }
+        }
+    </script>
+</body>
+</html>
